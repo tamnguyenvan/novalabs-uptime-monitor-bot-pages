@@ -20,18 +20,21 @@ body {
 
 @layer components {
   .btn-tg-primary {
-    @apply bg-[#0088cc] text-white px-6 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2;
+    @apply bg-[--tg-blue] text-white px-5 py-2.5 rounded-xl font-medium transition-all hover:opacity-90 active:scale-95 disabled:opacity-50;
   }
   
   .btn-tg-secondary {
     @apply bg-[#f4f4f5] text-[#0088cc] px-6 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2;
   }
   
-  .tg-card {
-    @apply bg-white border border-[#dfe1e5] rounded-2xl overflow-hidden;
-  }
-  
   .tg-input {
     @apply w-full bg-[#f4f4f5] border-transparent border-2 focus:border-[#0088cc] focus:bg-white rounded-xl px-4 py-3 outline-none text-[#222222] placeholder-[#707579];
+  }
+
+  .tg-card {
+    @apply bg-white border border-[--tg-divider] rounded-2xl shadow-sm overflow-hidden;
+  }
+  .status-badge {
+    @apply px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border;
   }
 }
