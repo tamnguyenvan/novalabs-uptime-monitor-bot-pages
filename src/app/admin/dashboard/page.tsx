@@ -10,11 +10,13 @@ export default async function AdminDashboard() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  console.log(user)
   const { data: profile } = await supabase
     .from("profiles")
     .select("is_admin")
     .eq("id", user.id)
     .single();
+  console.log('profile', profile)
 
   if (!profile?.is_admin) {
     return (

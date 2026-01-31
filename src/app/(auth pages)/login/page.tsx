@@ -13,19 +13,22 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
-    let redirect = window.location.pathname.replace('/', '')
-    redirect = redirect === '' ? 'home' : redirect
-    supabase.auth.signInWithOAuth({
+    // Luôn redirect về trang dashboard sau khi login thành công
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/${redirect}/callback`,
+        redirectTo: `${window.location.origin}/auth/admin-dashboard/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
         },
       }
-    })
-  };
+    });
+    if (error) {
+        alert(error.message);
+        setGoogleLoading(false);
+    }
+};
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();

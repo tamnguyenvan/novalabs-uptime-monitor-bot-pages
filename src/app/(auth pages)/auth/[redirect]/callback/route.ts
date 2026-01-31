@@ -10,39 +10,25 @@ export async function GET(
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   
-  // Get direct path from params.redirect
-  let redirectPath = (await params).redirect || '/'
-  redirectPath = redirectPath === 'home' ? '/' : `/${redirectPath}`
+  // Giải mã path đích: admin-dashboard -> /admin/dashboard
+  const redirectParam = (await params).redirect
+  const next = redirectParam === 'home' ? '/' : `/${redirectParam.replace(/-/g, '/')}`
 
-  if (!code) {
-    return NextResponse.redirect(`${requestUrl.origin}/auth/auth-code-error`)
-  }
-
-  try {
+  if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
-    if (error) {
-      throw error
+    if (!error) {
+      const host = request.headers.get('host') || requestUrl.host
+      const isLocal = host.includes('localhost') || host.includes('127.0.0.1')
+      const protocol = isLocal ? 'http' : 'https'
+      
+      // Tạo URL chuyển hướng an toàn
+      const redirectUrl = `${protocol}://${host}${next}`
+      return NextResponse.redirect(redirectUrl)
     }
-
-    const forwardedHost = request.headers.get('x-forwarded-host')
-    const isLocalEnv = process.env.NODE_ENV === 'development'
-    
-    let baseUrl: string
-    
-    if (isLocalEnv) {
-      baseUrl = requestUrl.origin
-    } else if (forwardedHost) {
-      baseUrl = `https://${forwardedHost}`
-    } else {
-      baseUrl = requestUrl.origin
-    }
-
-    const redirectUrl = `${baseUrl}${redirectPath}`
-    return NextResponse.redirect(redirectUrl)
-  } catch (error) {
-    console.error('Auth callback error:', error)
-    return NextResponse.redirect(`${requestUrl.origin}/auth/auth-code-error`)
   }
+
+  // Nếu lỗi code hoặc auth, về trang lỗi
+  return NextResponse.redirect(`${requestUrl.origin}/auth/auth-code-error`)
 }
