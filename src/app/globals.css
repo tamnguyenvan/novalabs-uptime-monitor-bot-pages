@@ -1,43 +1,37 @@
 @import "tailwindcss";
 
-@theme {
-  --font-mono: "IBM Plex Mono", monospace;
-  --font-sans: "IBM Plex Sans", sans-serif;
-  --color-brand-green: #22c55e;
-  --color-brand-red: #ef4444;
-}
-
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --border: #0a0a0a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ffffff;
-    --border: #ffffff;
-  }
+  --tg-blue: #0088cc;
+  --tg-bg: #ffffff;
+  --tg-secondary-bg: #f4f4f5;
+  --tg-text: #222222;
+  --tg-hint: #707579;
+  --tg-divider: #dfe1e5;
+  --tg-green: #31b545;
+  --tg-red: #e53935;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+  background-color: var(--tg-bg);
+  color: var(--tg-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-.brutalist-border {
-  border: 2px solid var(--foreground);
-}
-
-.brutalist-shadow {
-  box-shadow: 4px 4px 0px 0px var(--foreground);
-}
-
-.grid-bg {
-  background-image: radial-gradient(var(--foreground) 1px, transparent 0);
-  background-size: 40px 40px;
-  background-position: -19px -19px;
-  opacity: 0.05;
+@layer components {
+  .btn-tg-primary {
+    @apply bg-[#0088cc] text-white px-6 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2;
+  }
+  
+  .btn-tg-secondary {
+    @apply bg-[#f4f4f5] text-[#0088cc] px-6 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2;
+  }
+  
+  .tg-card {
+    @apply bg-white border border-[#dfe1e5] rounded-2xl overflow-hidden;
+  }
+  
+  .tg-input {
+    @apply w-full bg-[#f4f4f5] border-transparent border-2 focus:border-[#0088cc] focus:bg-white rounded-xl px-4 py-3 outline-none text-[#222222] placeholder-[#707579];
+  }
 }

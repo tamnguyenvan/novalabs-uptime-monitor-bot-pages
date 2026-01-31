@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Users, Globe, AlertTriangle, CheckCircle } from "lucide-react";
+import { Users, Globe, AlertCircle, Activity, Search, MoreHorizontal } from "lucide-react";
+
+export const runtime = 'edge';
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
   
-  // 1. Check Auth & Admin Status
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
@@ -16,10 +17,19 @@ export default async function AdminDashboard() {
     .single();
 
   if (!profile?.is_admin) {
-    return <div className="p-24 text-center font-mono">ACCESS_DENIED: Admin privileges required.</div>;
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-[--color-tg-secondary-bg]">
+            <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <AlertCircle className="text-red-500" size={32} />
+                </div>
+                <h1 className="text-xl font-bold">Access Denied</h1>
+                <p className="text-[--color-tg-hint]">You do not have administrative privileges.</p>
+            </div>
+        </div>
+    );
   }
 
-  // 2. Fetch Stats
   const { data: users } = await supabase.from("profiles").select("*, monitors(count)");
   const { data: monitors } = await supabase.from("monitors").select("*");
 
@@ -27,52 +37,77 @@ export default async function AdminDashboard() {
   const downMonitors = monitors?.filter(m => m.status === 'down').length || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-12 font-sans">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-12 flex justify-between items-end">
-          <div>
-            <h1 className="font-mono text-3xl font-bold uppercase tracking-tighter">Admin_Panel</h1>
-            <p className="text-gray-500 font-mono text-sm">System oversight and user monitoring</p>
-          </div>
-          <div className="font-mono text-xs bg-black text-white px-3 py-1">v2.0.4-stable</div>
-        </header>
+    <div className="min-h-screen bg-[--color-tg-secondary-bg] font-sans">
+      {/* Top Bar */}
+      <header className="bg-white border-b border-[--color-tg-divider] sticky top-0 z-10">
+        <div className="tg-container h-16 flex items-center justify-between">
+            <h1 className="font-bold text-lg">Admin Console</h1>
+            <div className="flex items-center gap-4">
+                <div className="text-sm text-[--color-tg-hint]">{user.email}</div>
+                <div className="w-8 h-8 bg-[--color-tg-blue] rounded-full text-white flex items-center justify-center text-sm font-bold">
+                    A
+                </div>
+            </div>
+        </div>
+      </header>
 
+      <div className="tg-container py-8">
         {/* Stats Grid */}
-        <div className="grid md:grid-cols-4 gap-6 mb-12">
-          <StatCard label="Total Users" value={users?.length || 0} icon={<Users size={20} />} />
-          <StatCard label="Monitored Endpoints" value={totalMonitors} icon={<Globe size={20} />} />
-          <StatCard label="Critical Issues" value={downMonitors} icon={<AlertTriangle size={20} />} className="text-brand-red border-brand-red" />
-          <StatCard label="System Health" value="99.9%" icon={<CheckCircle size={20} />} className="text-brand-green border-brand-green" />
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
+          <StatCard label="Total Users" value={users?.length || 0} icon={<Users size={20} className="text-[--color-tg-blue]" />} />
+          <StatCard label="Monitors" value={totalMonitors} icon={<Globe size={20} className="text-[--color-tg-blue]" />} />
+          <StatCard label="Critical Issues" value={downMonitors} icon={<AlertCircle size={20} className="text-[--color-tg-red]" />} />
+          <StatCard label="System Health" value="99.9%" icon={<Activity size={20} className="text-[--color-tg-green]" />} />
         </div>
 
         {/* Users Table */}
-        <div className="border-2 border-black bg-white brutalist-shadow overflow-hidden">
-          <div className="bg-black text-white p-4 font-mono text-sm font-bold uppercase tracking-widest">
-            Active_Users_Registry
+        <div className="bg-white rounded-2xl border border-[--color-tg-divider] overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-[--color-tg-divider] flex justify-between items-center bg-gray-50/50">
+            <h2 className="font-bold text-md">User Registry</h2>
+            <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input type="text" placeholder="Search users..." className="pl-9 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-[--color-tg-blue] transition-colors" />
+            </div>
           </div>
+          
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left">
               <thead>
-                <tr className="border-b-2 border-black font-mono text-xs uppercase bg-gray-50">
-                  <th className="p-4">Username</th>
-                  <th className="p-4">Telegram ID</th>
-                  <th className="p-4">Plan</th>
-                  <th className="p-4">Endpoints</th>
-                  <th className="p-4">Joined</th>
+                <tr className="text-xs text-[--color-tg-hint] uppercase bg-white border-b border-[--color-tg-divider]">
+                  <th className="px-6 py-4 font-medium">User</th>
+                  <th className="px-6 py-4 font-medium">Telegram ID</th>
+                  <th className="px-6 py-4 font-medium">Plan</th>
+                  <th className="px-6 py-4 font-medium">Monitors</th>
+                  <th className="px-6 py-4 font-medium">Joined</th>
+                  <th className="px-6 py-4 font-medium"></th>
                 </tr>
               </thead>
-              <tbody className="font-mono text-sm">
+              <tbody className="text-sm">
                 {users?.map((u) => (
-                  <tr key={u.id} className="border-b border-gray-200 hover:bg-yellow-50 transition-colors">
-                    <td className="p-4 font-bold">{u.username || 'Anonymous'}</td>
-                    <td className="p-4 text-gray-500">{u.telegram_id || 'N/A'}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-0.5 border border-black text-[10px] font-bold uppercase ${u.plan === 'pro' ? 'bg-black text-white' : 'bg-white'}`}>
+                  <tr key={u.id} className="border-b border-[--color-tg-divider] last:border-0 hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                        <div className="font-medium">{u.username || 'Anonymous'}</div>
+                        <div className="text-xs text-[--color-tg-hint]">{u.id.substring(0,8)}...</div>
+                    </td>
+                    <td className="px-6 py-4 text-[--color-tg-hint] font-mono text-xs">{u.telegram_id || '-'}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                        u.plan === 'pro' 
+                            ? 'bg-blue-50 text-blue-600 border-blue-200' 
+                            : u.plan === 'enterprise' 
+                                ? 'bg-purple-50 text-purple-600 border-purple-200'
+                                : 'bg-gray-100 text-gray-600 border-gray-200'
+                      }`}>
                         {u.plan}
                       </span>
                     </td>
-                    <td className="p-4">{(u.monitors as any)[0]?.count || 0}</td>
-                    <td className="p-4 text-gray-400">{new Date(u.created_at).toLocaleDateString()}</td>
+                    <td className="px-6 py-4">{(u.monitors as any)[0]?.count || 0}</td>
+                    <td className="px-6 py-4 text-[--color-tg-hint]">{new Date(u.created_at).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-right">
+                        <button className="text-gray-400 hover:text-black">
+                            <MoreHorizontal size={16} />
+                        </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -84,14 +119,14 @@ export default async function AdminDashboard() {
   );
 }
 
-function StatCard({ label, value, icon, className = "" }: any) {
+function StatCard({ label, value, icon }: any) {
   return (
-    <div className={`border-2 border-black bg-white p-6 brutalist-shadow flex justify-between items-start ${className}`}>
-      <div>
-        <div className="font-mono text-xs uppercase text-gray-500 font-bold mb-2">{label}</div>
-        <div className="font-mono text-3xl font-bold">{value}</div>
+    <div className="bg-white p-5 rounded-2xl border border-[--color-tg-divider] shadow-sm flex flex-col justify-between h-32">
+      <div className="flex justify-between items-start">
+        <div className="text-sm text-[--color-tg-hint] font-medium">{label}</div>
+        <div className="p-2 rounded-lg bg-[--color-tg-secondary-bg]">{icon}</div>
       </div>
-      <div className="p-2 border-2 border-black">{icon}</div>
+      <div className="text-2xl font-bold">{value}</div>
     </div>
   );
 }
