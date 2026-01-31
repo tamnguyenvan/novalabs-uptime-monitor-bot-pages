@@ -10,14 +10,18 @@ export default function SignupPage() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
+    let redirect = window.location.pathname.replace('/', '')
+    redirect = redirect === '' ? 'home' : redirect
+    supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) {
-        alert(error.message);
-        setLoading(false);
-    }
+      options: {
+        redirectTo: `${window.location.origin}/auth/${redirect}/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      }
+    })
   };
 
   return (

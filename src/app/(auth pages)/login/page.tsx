@@ -10,18 +10,21 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const supabase = createClient();
+
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
+    let redirect = window.location.pathname.replace('/', '')
+    redirect = redirect === '' ? 'home' : redirect
+    supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+        redirectTo: `${window.location.origin}/auth/${redirect}/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       }
-    });
-    if (error) {
-      alert(error.message);
-      setGoogleLoading(false);
-    }
+    })
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
