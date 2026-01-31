@@ -5,13 +5,13 @@ export const runtime = 'edge'
 
 export async function GET(
   request: Request,
-  { params }: { params: { redirect: string } }
+  { params }: { params: Promise<{ redirect: string }> }
 ) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   
   // Get direct path from params.redirect
-  let redirectPath = params.redirect || '/'
+  let redirectPath = (await params).redirect || '/'
   redirectPath = redirectPath === 'home' ? '/' : `/${redirectPath}`
 
   if (!code) {
